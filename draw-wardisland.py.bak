@@ -1,0 +1,253 @@
+from random import randint
+import numpy as np
+from glumpy import app, gloo, gl
+
+
+def drawStrip(xstart, ystart, xstop, dx, dy, sa = True, ea = True):
+    n = int ((xstop - xstart) / dx)
+    numvertices = (n - 1) * 6
+    vertices = [[0.0, 0.0] for v in range(numvertices)]
+    a = xstart
+    ytop = ystart
+    ybot = ystart - dy
+
+    count = 0
+    b = a + dx
+    vertices[count + 0][0] = b
+    vertices[count + 0][1] = ytop
+    vertices[count + 1][0] = a
+    vertices[count + 1][1] = ytop
+    vertices[count + 2][0] = b
+    vertices[count + 2][1] = ybot
+    a = b
+    count = count + 3
+    for i in range(n - 2):
+        b = a + dx
+        vertices[count + 0][0] = a
+        vertices[count + 0][1] = ytop
+        vertices[count + 1][0] = a
+        vertices[count + 1][1] = ybot
+        vertices[count + 2][0] = b
+        vertices[count + 2][1] = ytop
+        vertices[count + 3][0] = b
+        vertices[count + 3][1] = ytop
+        vertices[count + 4][0] = a
+        vertices[count + 4][1] = ybot
+        vertices[count + 5][0] = b
+        vertices[count + 5][1] = ybot
+        count = count + 6
+        a = b
+    b = a + dx
+    vertices[count + 0][0] = a
+    vertices[count + 0][1] = ytop
+    vertices[count + 1][0] = a
+    vertices[count + 1][1] = ybot
+    vertices[count + 2][0] = b
+    vertices[count + 2][1] = ytop
+
+    if sa == False and ea == False:
+        vertices = vertices[3:-3]
+    elif sa == False:
+        vertices = vertices[3:]
+    elif ea == False:
+        vertices = vertices[:-3]
+
+
+    return vertices
+
+
+vertex = """
+    attribute vec2 position;
+    attribute vec4 color;
+    varying vec4 v_color;
+    void main(){
+        gl_Position = vec4(position, 0.0, 1.0);
+        v_color = color;
+    } """
+
+
+fragment_uni = """
+    uniform vec4 color;
+        void main() { gl_FragColor = color; } """
+
+fragment_var = """
+    varying vec4 v_color;
+    void main() { gl_FragColor = v_color; } """
+
+# Create a window with a valid GL context
+window = app.Window()
+
+# Colors
+sand = np.array((245, 240, 188)) / 255
+light_green = np.array((171, 191, 157)) /255
+
+greens = [ np.array((138, 168, 146)) / 255,
+           np.array((171, 191, 157)) /255,
+           np.array((122, 145, 128)) / 255,
+           np.array((171, 194, 177)) / 255,
+           np.array((90, 105, 94)) / 255,
+           np.array((175, 199, 181)) / 255,
+           np.array((141, 179, 151)) / 255,
+         ]
+
+# Shapes
+shapes = []
+
+#########
+# Water #
+#########
+
+
+
+###############
+# Ward Island #
+###############
+vertices = []
+deltay =  0.05
+deltax =  0.025
+ystart =  0.84
+xstart = -0.95
+xran = [-0.95, 0.95]
+# --
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+# --
+ystart = ystart - deltay
+xran = [xran[0] , xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay, sa = False, ea = False)
+ystart = ystart - deltay
+xran = [xran[0] , xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay, sa = False, ea = False)
+ystart = ystart - deltay
+xran = [xran[0] , xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay, sa = False)
+ystart = ystart - deltay
+xran = [xran[0] , xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay, sa = False)
+ystart = ystart - deltay
+xran = [xran[0] , xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay, sa = False)
+ystart = ystart - deltay
+xran = [xran[0] , xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay, sa = False)
+# --
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+deltax = 0.04
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+detlax = 0.045
+deltay = 0.04
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+deltax = 0.065
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + 0.1, xran[1]]
+deltax = 0.07
+deltay = 0.03
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+
+ystart = ystart - deltay
+xrani = [xran[0] + deltax, xran[0] + 0.3]
+deltay = 0.02
+deltax = 0.02
+vertices = vertices + drawStrip(xrani[0], ystart, xrani[1], deltax, deltay)
+
+xran = [xrani[1] + 0.05, xrani[1] + 0.6]
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+
+deltax = 0.030
+deltay = 0.045
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+
+deltax = 0.01
+deltay = 0.05
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+
+deltax = 0.01
+deltay = 0.05
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay, sa = False)
+ystart = ystart - deltay
+xran = [xran[0], xran[1] - deltax]
+
+deltax = 0.03
+deltay = 0.056
+vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay, sa = False)
+ystart = ystart - deltay
+xran = [xran[0] + deltax, xran[1] - deltax]
+
+xranl = [xran[0], xran[0] + 0.2]
+deltax = 0.02
+deltay = 0.05
+vertices = vertices + drawStrip(xranl[0], ystart, xranl[1], deltax, deltay, sa = False)
+xranr = [xranl[1] + 0.04, xranl[1] + 0.14]
+deltax = 0.03
+deltay = 0.06
+vertices = vertices + drawStrip(xranr[0], ystart, xranr[1], deltax, deltay, sa = False)
+
+
+ystart = ystart - deltay
+
+
+island_colors = [(*greens[randint(0, len(greens) - 1)], 1) for v in range(len(vertices))]
+
+
+island                     = gloo.Program(vertex, fragment_var, count = len(vertices))
+island["position"]         = vertices
+island["color"]            = island_colors
+shapes.append(island)
+
+
+################
+# TAMUCC beach #
+################
+narrow_u_shore             = gloo.Program(vertex, fragment_uni, count = 3)
+narrow_u_shore["position"] = (-2, 0.84), (-0.7, 0.89), (2, 0.84)
+narrow_u_shore["color"]    = (*sand, 1)
+
+tamucc_beach               = gloo.Program(vertex, fragment_uni, count = 9)
+tamucc_beach["position"]   = (0.0, 0.84), (0.1, 2), (0.2, 2), \
+                             (0.5, 0.84), (0.4, 2), (0.3, 2), \
+                             (0.0, 0.84), (0.1, 2), (0.5, 0.84)
+tamucc_beach["color"]      = (*sand, 1)
+
+
+# Tell glumpy what needs to be done at each redraw
+@window.event
+def on_draw(dt):
+    window.clear()
+    for shape in shapes:
+        shape.draw(gl.GL_TRIANGLE_STRIP)
+
+# Run the app
+app.run()
