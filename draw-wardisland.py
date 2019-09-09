@@ -1,7 +1,12 @@
+
+# References used
+# Python & OpenGL for Scientific Visualization, Nicolas P. Rougier
+# - https://www.labri.fr/perso/nrougier/python-opengl/
+
 from random import randint
 import numpy as np
 from glumpy import app, gloo, gl, glm, transforms
-
+from glumpy.ext import png
 
 def drawStrip(xstart, ystart, xstop, dx, dy):
     n = int ((xstop - xstart) / dx)
@@ -81,14 +86,11 @@ fragment_var = """
     varying vec4 v_color;
     void main() { gl_FragColor = v_color; } """
 
-# Create a window with a valid GL context
-window = app.Window()
-
 # Colors
 sand = np.array((245, 240, 188)) / 255
 light_green = np.array((171, 191, 157)) /255
 
-bldgs  = [ np.array((250, 250, 242)) / 255,
+bldgs  = [ np.array((221, 232, 240)) / 255,
          ]
 
 greens = [ np.array((138, 168, 146)) / 255,
@@ -145,99 +147,99 @@ vertices = []
 deltay =  0.01
 deltax =  0.01
 ystart =  0.84
-xstart = -0.95
-xstop  = 0.95
+xstart = -1
+xstop  = 1
 
 nudges = [ [0.0, 0.0],
-           [0.01, 0.015],
-           [0.012, 0.02],
-           [0.014, 0.001],
-           [0.008, 0.006 ],
-           [0.00, 0.005 ],
-           [0.004 ,0.004 ],
-           [0.004 , 0.013],
-           [0.006,0.01],
-           [0.006,0.022],
-           [0.004,0.011],
-           [0.004,0.002],
-           [0.0033,0.004],
-           [0.0032,0.001],
-           [0.0035,0.002],
-           [0.003 ,0.009],
-           [0.002 ,00.004],
-           [0.002 ,0.004],
-           [-0.0021 ,0.004],
-           [0.0021 ,0.004],
-           [0.0034 ,0.004],
-           [-0.002 ,0.004],
-           [-0.001 ,0.004],
-           [-0.0001 ,0.004],
-           [0.002 ,0.004],
-           [0.004 ,0.004],
-           [-0.001 ,0.004],
-           [-0.002 ,0.004],
-           [0.0032 ,0.004],
-           [0.003 ,0.004],
-           [0.0052 ,0.004],
-           [0.003 ,0.004],
-           [0.0013 ,-0.004],
-           [0.0025,-0.004],
-           [0.001,-0.004],
-           [0.0023,-0.004],
-           [0.0037,-0.004],
-           [0.0036,0.0045],
-           [-0.001,0.005],
-           [0.0025,0.006],
-           [-0.001,0.0045],
-           [0.0034,0.003],
+           [0.00, 0.000],
+           [0.001, 0.00],
+           [0.005, 0.000],
+           [0.005, 0.000 ],
+           [0.007, 0.0000 ],
+           [0.005 ,0.0000 ],
+           [0.007 , 0.000],
+           [0.005,0.00],
+           [0.012,0.000],
+           [0.014,0.000],
+           [0.004,0.000],
+           [0.008,0.0001],
+           [0.0072,0.0001],
+           [0.0075,0.0002],
+           [0.008 ,0.0003],
+           [0.006 ,00.001],
+           [0.011 ,0.001],
+           [0.0021 ,0.001],
+           [0.0051 ,0.001],
+           [0.0054 ,0.001],
+           [0.012 ,0.001],
+           [0.0101 ,0.001],
+           [0.0011 ,0.001],
+           [0.027 ,0.001],
+           [0.007 ,0.004],
+           [0.0201 ,0.014],
+           [0.0102 ,0.014],
+           [0.0072 ,0.014],
+           [0.016 ,0.014],
+           [0.0172 ,0.014],
+           [0.0015 ,0.014],
+           [0.0063 ,-0.00004],
+           [0.0065,-0.00004],
+           [0.06,-0.014],  ########
+           [0.0063,-0.00004],
+           [-0.0047,-0.00004],
+           [0.0046,0.0015],
+           [-0.0001,0.015],
+           [0.0025,0.016],
+           [-0.011,0.0145],
+           [-0.0034,0.013],
            [0.002,-0.003],
-           [0.0013,0.0045],
-           [-0.0016,0.006],
-           [0.0025,0.0067],
-           [0.0044,-0.004],
-           [0.0053,-0.002],
-           [0.0035,-0.001],
-           [0.0028,-0.003],
-           [0.0027,0.0046],
-           [0.0035,0.0045],
-           [0.0035,0.007],
-           [0.0047,0.004],
-           [0.0037,0.004],
-           [0.0035,0.004],
-           [0.0035,-0.004],
-           [0.0035,-0.004],
-           [0.0035,-0.004],
-           [0.0033,-0.004],
-           [0.0033,-0.004],
-           [0.0033,0.0045],
-           [0.0035,0.009],
-           [0.0041,0.003],
-           [-0.0001,0.0035],
-           [-0.0005,-0.043],
-           [0.0031,-0.003],
-           [0.0035,0.0045],
-           [0.0021,0.006],
-           [0.0022,0.0067],
-           [0.0021,-0.004],
-           [-0.0005,-0.002],
-           [0.0022,-0.001],
-           [0.0035,-0.003],
-           [0.0025,0.0076],
-           [0.0035,0.0075],
-           [0.0035,0.02],
-           [0.0035,0.054],
-           [0.0035,0.004],
-           [0.0035,0.004],
+           [0.0013,0.0145],
+           [-0.0116,0.016],
+           [0.0025,0.0167],
+           [0.0144,0.014],
+           [0.0053,0.012],
            [0.0035,0.008],
-           [0.0065,0.007],
-           [0.0065,0.007],
+           [0.0028,0.008],
+           [0.0027,0.0086],
+           [0.0035,0.0085],
+           [0.0035,0.008],
+           [0.0047,0.008],
+           [0.0037,0.008],
+           [0.0035,0.008],
+           [0.0035,0.008],
+           [0.0035,0.008],
+           [0.0035,0.008],
+           [0.0033,0.008],
+           [0.0033,0.004],
+           [0.0033,0.00145],
+           [0.0035,0.0019],
+           [0.0041,0.0013],
+           [-0.0001,0.00135],
+           [-0.0005,0.0043],
+           [0.0031,0.0013],
+           [0.0035,0.0045],
+           [0.0021,0.003],
+           [0.0022,0.0037],
+           [0.0021,-0.000001],
+           [-0.0005,0.0002],
+           [0.0022,-0.0001],
+           [0.0035,-0.0003],
+           [0.0025,-0.001],
+           [0.0025,0.001],
+           [0.0025,0.01],
+           [0.0025,0.0014],
+           [0.0025,0.004],
+           [0.0025,0.004],
+           [0.0025,0.008],
+           [0.0025,0.007],
+           [0.0025,0.007], #####
            [0.0065,0.007],
            [0.0175,0.007],
            [0.0185,0.0075],
            [0.0085,0.007],
            [0.0195,0.007],
            [0.0035,0.0075],
-           [0.0125,0.047],
+           [0.0125,0.0047],
            [0.0075,0.007],
            [0.0195,0.0075],
            [0.0205,0.006],
@@ -257,51 +259,35 @@ nudges = [ [0.0, 0.0],
            [0.04,-0.001],
            [0.04,-0.003],
            [0.01,0.002],
-           [0.01,0.0075],
-           [0.01,0.007],
-           [0.01,0.007],
-           [0.01,0.0075],
+           [0.01,0.0045],
+           [0.01,0.004],
+           [0.01,0.004],
+           [0.01,0.0045],
            [0.001,0.047],
            [0.001,0.007],
-           [0.001,0.008],
-           [0.01,0.008],
-           [0.001,0.0087],
-           [0.01,0.007],
-           [0.01,0.007],
-           [0.01,0.005],
-           [0.01,0.007],
-           [0.01,0.006],
+           [0.001,0.004],
+           [0.01,0.004],
+           [0.011,0.0047],
+           [0.02,0.004],
+           [0.01,0.004],
+           [0.02,0.005],
+           [0.01,0.004],
+           [0.03,0.006],
            [0.005,0.0095],
-           [0.005, -0.005],
-           [0.005,-0.012],
-           [0.005,-0.003],
-           [0.005,0.0094],
-           [0.005,0.0034],
-           [0.005,0.004],
-           [0.0027,0.008],
-           [0.04,0.003],
-           [0.04,0.001],
-           [0.04,0.003],
-           [0.01,0.002],
-           [0.01,0.007],
-           [0.01,0.007],
-           [0.01,0.0075],
-           [0.001,0.047],
-           [0.001,0.008],
-           [0.01,0.008],
-           [0.001,0.0087],
-           [0.01,0.007],
-           [0.01,0.001],
-           [0.01,0.005],
-           [0.01,0.002],
-           [0.01,0.003],
-           [0.015,0.0005],
-           [0.005, 0.005],
-           [0.005,0.0012],
-           [0.005,0.003],
-           [0.005,0.004],
-           [0.005,0.004],
-           [0.025,0.004],
+           [-0.015, 0.015],
+           [-0.025,0.022],
+           [-0.045,0.013],
+           [0.025,0.0194],
+           [0.0315,0.0234],
+           [0.03015,0.024],
+           [0.020127,0.018],
+           [0.0004,0.003],
+           [0.004,0.001],
+           [0.0004,0.003],
+           [0.001,0.006],
+           [0.011,0.017],
+           [0.0101,0.017],
+           [0.011,0.0175],
          ]
 
 vertices                    = drawVarBlock(ystart, xstart, xstop, deltax, deltay, nudges)
@@ -322,20 +308,207 @@ shapes.append(islandb)
 # Buildings #
 #############
 
-bldg_cch_vertices      = np.array([ (-0.5, 0.2), (0.1, 0.2), (0.1, 1),
+# Corpus Christi Hall (CCH)
+bldg_cch_vertices      = np.array([ (-0.7, 0.2), (0.1, 0.2), (0.1, 1),
                            (0.1, -1),   (-0.4, 0.2), (0.1, 0.2),
                            (-0.4, -1), (0.1, -1), (0.1, 0.2)
                          ])
-
 bldg_cch               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_cch_vertices))
 bldg_cch["position"]   = bldg_cch_vertices
-bldg_cch["color"]      = (*bldgs[0], 1)
-model = np.eye(4, dtype=np.float32)
-glm.rotate(model, 0.3, 0, 0, 1)
-glm.scale(model, 0.1, 0.1, 1)
-glm.translate(model, -0.1, .5, 0.0)
-bldg_cch["model"] = model
+bldg_cch["color"]      = (*bldgs[0], 0.9)
+bldg_cch_model = np.eye(4, dtype=np.float32)
+glm.rotate(bldg_cch_model, 0.3, 0, 0, 1)
+glm.scale(bldg_cch_model, 0.1, 0.1, 1)
+glm.translate(bldg_cch_model, -0.08, .65, 0.0)
+bldg_cch["model"] = bldg_cch_model
 shapes.append(bldg_cch)
+
+# Center for the Arts (CA)
+bldg_ca_vertices =    np.array([ (0, 0), (.7, 0), (0, 0.5),
+                                 (.7, .5), (.7, 0), (0, 0.5),
+                                 (.7, 0), (.7, .5), (1, 0.0),
+                                 (1, 0.0), (1, 0.5), (.7, 0.5),
+                                 (0.5, 0), (1, 0.0), (0.7, 0.7),
+                                 (1, 0.0), (1, 0.7), (.7, 0.7),
+                                 (1, 0), (1.5, 0.0), (1, 0.6),
+                                 (1.5, 0.0), (1.5, 0.6), (1, 0.6),
+                                 (.2, 0), (.2, -0.15), (1.6, 0),
+                                 (.2, -0.15), (1.6, 0), (1.6, -0.15),
+
+                      ])
+bldg_ca               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_ca_vertices))
+bldg_ca["position"]   = bldg_ca_vertices
+bldg_ca["color"]      = (*bldgs[0], 0.9)
+bldg_ca_model = np.eye(4, dtype=np.float32)
+glm.rotate(bldg_ca_model, 0.3, 0, 0, 1)
+glm.scale(bldg_ca_model, 0.13, 0.1, 1)
+glm.translate(bldg_ca_model, -0.04, .55, 0.0)
+bldg_ca["model"] = bldg_ca_model
+shapes.append(bldg_ca)
+
+# O'Conner
+bldg_ocon_vertices =    np.array([ (0.0, 0.0), (1, 0.0), (0.0, 1),
+                                  (1, 0.0), (0.0, 1), (1, 1),
+                                  (0.0, 0.6), (-0.2, 0.6), (0.0, 0.4),
+                                  (-0.2, 0.6), (0.0, 0.4), (-0.2, 0.4),
+                                  (.6, 1), (.9, 1), (.6, 1.2),
+                                  (.9, 1), (.6, 1.2), (.9, 1.2),
+                      ])
+bldg_ocon               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_ocon_vertices))
+bldg_ocon["position"]   = bldg_ocon_vertices
+bldg_ocon["color"]      = (*bldgs[0], 0.9)
+bldg_ocon_model = np.eye(4, dtype=np.float32)
+glm.rotate(bldg_ocon_model, 0.2, 0, 0, 1)
+glm.scale(bldg_ocon_model, 0.14, 0.12, 1)
+glm.translate(bldg_ocon_model, -0.2, .35, 0.0)
+bldg_ocon["model"] = bldg_ocon_model
+shapes.append(bldg_ocon)
+
+# Mary & Jeff Bell Library
+bldg_lib_vertices =    np.array([ (0.0, 0.0), (1, 0.0), (0.0, 1),
+                                  (1, 0.0), (0.0, 1), (1, 1),
+                      ])
+bldg_lib               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_lib_vertices))
+bldg_lib["position"]   = bldg_lib_vertices
+bldg_lib["color"]      = (*bldgs[0], 0.9)
+bldg_lib_model = np.eye(4, dtype=np.float32)
+#glm.rotate(bldg_lib_model, 0.5, 1, 1, 1)
+glm.scale(bldg_lib_model, 0.05, .15, 1)
+glm.translate(bldg_lib_model, -0.11, .164, 0.0)
+bldg_lib["model"] = bldg_lib_model
+shapes.append(bldg_lib)
+
+# Bay Hall (BH)
+bldg_bay_vertices =    np.array([ (0.0, 0.0), (1, 0.0), (0.0, 1),
+                                  (1, 0.0), (0.0, 1), (1, 1),
+                      ])
+bldg_bay               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_bay_vertices))
+bldg_bay["position"]   = bldg_bay_vertices
+bldg_bay["color"]      = (*bldgs[0], 0.9)
+bldg_bay_model = np.eye(4, dtype=np.float32)
+#glm.rotate(bldg_bay_model, 0.5, 1, 1, 1)
+glm.scale(bldg_bay_model, 0.06, .13, 1)
+glm.translate(bldg_bay_model, 0.05, .38, 0.0)
+bldg_bay["model"] = bldg_bay_model
+shapes.append(bldg_bay)
+
+# Faculty Center (FC)
+bldg_fc_vertices =    np.array([ (0.0, 0.0), (1, 0.0), (0.0, 1),
+                                  (1, 0.0), (0.0, 1), (1, 1),
+                                  (0.2, 0.0), (0.2, -0.25), (.9, 0.0),
+                                  (.9, 0.0), (0.2, -0.25), (.9, -0.25),
+
+
+                      ])
+bldg_fc               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_fc_vertices))
+bldg_fc["position"]   = bldg_fc_vertices
+bldg_fc["color"]      = (*bldgs[0], 0.9)
+bldg_fc_model = np.eye(4, dtype=np.float32)
+#glm.rotate(bldg_fc_model, 0.5, 1, 1, 1)
+glm.scale(bldg_fc_model, 0.15, .04, 1)
+glm.translate(bldg_fc_model, -.045, .32, 0.0)
+bldg_fc["model"] = bldg_fc_model
+shapes.append(bldg_fc)
+
+# Center for Instruction (CI)
+bldg_ci_vertices = np.array([ (0, 0), (2, 0), (2, 7),
+                              (0, 0), (2, 7), (0, 7),
+                              (-3, 0), (3, 0), (0, -4),
+                              (-3, 0), (0, 0), (0, 8.5),
+                              (-3, 8.5), (0, 8.5), (-3, 0),
+                              (-3, 0), (-11, 0), (-11, 3),
+                              (-3, 3), (-3, 0),(-11, 3),
+                              (-11, 3), (-11, 4.5), (-4, 3),
+                              (-4, 4.5), (-11, 3), (-4, 3),
+                  ])
+bldg_ci               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_ci_vertices))
+bldg_ci["position"]   = bldg_ci_vertices
+bldg_ci["color"]      = (*bldgs[0], 0.9)
+bldg_ci_model = np.eye(4, dtype=np.float32)
+#glm.rotate(bldg_ci_model, 0.5, 1, 1, 1)
+glm.scale(bldg_ci_model, 0.011, .011, 1)
+glm.translate(bldg_ci_model, .1, .175, 0.0)
+bldg_ci["model"] = bldg_ci_model
+shapes.append(bldg_ci)
+
+# University Services Center (USC)
+bldg_usc_vertices   = np.array([ (0, 0), (7, 0), (0, 4),
+                                 (7, 0), (0, 4), (7, 4),
+                                 (-4, 4), (0, 0), (0, 4),
+                                 (3.5, 0), (7, 0), (9, -5),
+                                 (7, 0), (7, 4), (12, -1),
+                                 (12, -1), (9, -5), (7, 0),
+                              ])
+bldg_usc_vertices = bldg_usc_vertices
+bldg_usc               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_usc_vertices))
+bldg_usc["position"]   = bldg_usc_vertices
+bldg_usc["color"]      = (*bldgs[0], 0.9)
+bldg_usc_model = np.eye(4, dtype=np.float32)
+#glm.rotate(bldg_usc_model, 0.5, 1, 1, 1)
+glm.scale(bldg_usc_model, 0.0075, .0075, 1)
+glm.translate(bldg_usc_model, -.045, .7, 0.0)
+bldg_usc["model"] = bldg_usc_model
+shapes.append(bldg_usc)
+
+# Dugan Wellness Center (DWC)
+bldg_dwc_vertices = np.array([ (0, 0), (0, 1), (1, 0),
+                               (0, 1), (1, 0), (1, 1),
+                               (0, 0), (1, 0), (-.02, -0.25),
+                               (0, 1), (-0.255, 0.94), (-.02, -0.25),
+
+                            ])
+bldg_dwc               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_dwc_vertices))
+bldg_dwc["position"]   = bldg_dwc_vertices
+bldg_dwc["color"]      = (*bldgs[0], 0.9)
+bldg_dwc_model = np.eye(4, dtype=np.float32)
+#glm.rotate(bldg_dwc_model, 0.5, 1, 1, 1)
+glm.scale(bldg_dwc_model, 0.075, .075, 1)
+glm.translate(bldg_dwc_model, .062, .02, 0.0)
+bldg_dwc["model"] = bldg_dwc_model
+shapes.append(bldg_dwc)
+
+# Glasscock Student Success Center (GSSC)
+bldg_gssc_vertices = np.array([ (0, 0), (7, 0), (0, -1.5),
+                                (7, -1.5), (7, 0), (0, -1.5),
+                                (4, 0), (4, 2),(0, 2),
+                                (0, 0), (0, 2), (4, 0),
+                                (0, 2), (0, 3.5), (7, 3.5),
+                                (7, 2), (7, 3.5),(0, 2),
+                             ])
+bldg_gssc               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_gssc_vertices))
+bldg_gssc["position"]   = bldg_gssc_vertices
+bldg_gssc["color"]      = (*bldgs[0], 0.9)
+bldg_gssc_model = np.eye(4, dtype=np.float32)
+#glm.rotate(bldg_gssc_model, 0.5, 1, 1, 1)
+glm.scale(bldg_gssc_model, 0.012, .014, 1)
+glm.translate(bldg_gssc_model, -.225, .25, 0.0)
+bldg_gssc["model"] = bldg_gssc_model
+shapes.append(bldg_gssc)
+
+# Engineering (EN)
+bldg_en_vertices = np.array([ (0, 0), (0, 1), (6, 1),
+                              (6, 0), (6, 1), (0, 0),
+                              (1.5, 0), (1.5, -.7), (0, 0),
+                              (0, -.7), (1.5, -.7), (0, 0),
+                              (-1, 1), (0, 1), (0, -.7),
+                              (0, 1.5), (5.5, 1.5), (0, 1),
+                              (5.5, 1.5), (5.5, 1), (0, 1),
+                             ])
+bldg_en               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_en_vertices))
+bldg_en["position"]   = bldg_en_vertices
+bldg_en["color"]      = (*bldgs[0], 0.9)
+bldg_en_model = np.eye(4, dtype=np.float32)
+#glm.rotate(bldg_en_model, 0.5, 1, 1, 1)
+glm.scale(bldg_en_model, 0.02, .04, 1)
+glm.translate(bldg_en_model, -.25, .16, 0.0)
+bldg_en["model"] = bldg_en_model
+shapes.append(bldg_en)
+
+
+
+# Create a window with a valid GL context
+window = app.Window()
+framebuffer = np.zeros((window.height, window.width * 3), dtype=np.uint8)
 
 # Tell glumpy what needs to be done at each redraw
 @window.event
@@ -343,6 +516,10 @@ def on_draw(dt):
     window.clear()
     for shape in shapes:
         shape.draw(gl.GL_TRIANGLE_STRIP)
+
+    gl.glReadPixels(0, 0, window.width, window.height,
+           gl.GL_RGB, gl.GL_UNSIGNED_BYTE, framebuffer)
+    png.from_array(np.flipud(framebuffer), 'RGB').save('wardisland.png')
 
 # Run the app
 app.run()
