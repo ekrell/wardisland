@@ -7,6 +7,7 @@ from random import randint
 import numpy as np
 from glumpy import app, gloo, gl, glm, transforms
 from glumpy.ext import png
+from scipy import interpolate
 
 def drawStrip(xstart, ystart, xstop, dx, dy):
     n = int ((xstop - xstart) / dx)
@@ -119,8 +120,9 @@ waters = [ np.array((163, 201, 196)) / 255,
            np.array((173, 192, 204)) / 255,
          ]
 
-# Shapes
+# Shapes, curves
 shapes = []
+curves = []
 
 #########
 # Water #
@@ -505,6 +507,88 @@ bldg_en["model"] = bldg_en_model
 shapes.append(bldg_en)
 
 
+########
+# Wind #
+########
+Xres = 100
+Yres = 100
+wind_mag = np.array([ [0.0, 0.0, 0.0, 0.0, 0.0],
+                      [0.0, 0.0, 0.0, 0.0, 0.0],
+                      [0.5, 0.5, 0.5, 0.5, 0.5],
+                      [0.5, 0.5, 0.5, 0.5, 0.5],
+                      [1.0, 1.0, 1.0, 1.0, 1.0],
+                    ])
+wind_dir = np.array([ [0.0, 0.0, 0.0, 0.0, 0.0],
+                      [0.0, 0.0, 0.0, 0.0, 0.0],
+                      [0.5, 0.5, 0.5, 0.5, 0.5],
+                      [0.5, 0.5, 0.5, 0.5, 0.5],
+                      [1.0, 1.0, 1.0, 1.0, 1.0],
+                    ])
+# Convert original, not upsampled since cos/sin expensive
+wind_v = wind_mag * np.cos(wind_dir)
+wind_u = wind_mag * np.sin(wind_dir)
+
+# Interpolate (upsample) u, v to Xres, Yres
+x = np.array(range(wind_v.shape[1]))
+y = np.array(range(wind_v.shape[0]))
+xx, yy = np.meshgrid(x, y)
+f_v = interpolate.interp2d(x, y, wind_v, kind = 'linear')
+f_u = interpolate.interp2d(x, y, wind_u, kind = 'linear')
+xnew = np.linspace(0, 5, Xres)
+ynew = np.linspace(0, 5, Yres)
+
+inter_v = f_v(xnew, ynew)
+inter_u = f_u(xnew, ynew)
+
+
+# Make agent
+x_in = 0.5
+y_in = 0.5
+mag_in = 0.05
+dir_in = 0.45
+agent = { "pos" : { "x" : x_in,
+                    "y" : y_in },
+          "vel" : { "u" : mag_in * np.cos(dir_in),
+                    "v" : mag_in * np.sin(dir_in) },
+        }
+
+def moveAgent(agent, time = 0.05, env = None):
+    agent["pos"]["y"] = agent["pos"]["y"] + agent["vel"]["v"] * time
+    agent["pos"]["x"] = agent["pos"]["x"] + agent["vel"]["u"] * time
+
+def recordAgent(agent, time = 0.05, duration = 100, env = None):
+    iters = int(np.ceil(duration / time))
+    trajectory = np.zeros((iters, 2))
+    for i in range(iters):
+        trajectory[i] = [agent["pos"]["x"], agent["pos"]["y"]]
+        moveAgent(agent, time, env)
+    trajectory[i] = [agent["pos"]["x"], agent["pos"]["y"]]
+    return trajectory
+
+traj = recordAgent(agent)
+
+
+# Trajectory to line object
+traj_line               = gloo.Program(vertex_m, fragment_uni, count = traj.shape[0])
+traj_line["position"]   = traj
+traj_line["color"]      = (*bldgs[0], 0.9)
+traj_line_model = np.eye(4, dtype=np.float32)
+##glm.rotate(bldg_en_model, 0.5, 1, 1, 1)
+#glm.scale(bldg_en_model, 0.02, .04, 1)
+#glm.translate(bldg_en_model, -.25, .16, 0.0)
+traj_line["model"] = traj_line_model
+curves.append(traj_line)
+
+
+
+
+
+
+
+
+################
+# Setup OpenGL #
+################
 
 # Create a window with a valid GL context
 window = app.Window()
@@ -516,6 +600,8 @@ def on_draw(dt):
     window.clear()
     for shape in shapes:
         shape.draw(gl.GL_TRIANGLE_STRIP)
+    for curve in curves:
+        curve.draw(gl.GL_POINTS)
 
     gl.glReadPixels(0, 0, window.width, window.height,
            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, framebuffer)

@@ -18,4 +18,5 @@ Ward Island represented using 2D OpenGL primitives
     pip install pyopengl
     pip install triangle
     pip install glumpy
+    pip install scipy
 
