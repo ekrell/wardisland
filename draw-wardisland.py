@@ -77,8 +77,6 @@ vertex_m = """
     }
     """
 
-
-
 fragment_uni = """
     uniform vec4 color;
         void main() { gl_FragColor = color; } """
@@ -88,6 +86,7 @@ fragment_var = """
     void main() { gl_FragColor = v_color; } """
 
 # Colors
+debug = np.array((255, 0, 0)) / 255
 sand = np.array((245, 240, 188)) / 255
 light_green = np.array((171, 191, 157)) /255
 
@@ -506,24 +505,24 @@ glm.translate(bldg_en_model, -.25, .16, 0.0)
 bldg_en["model"] = bldg_en_model
 shapes.append(bldg_en)
 
-
 ########
 # Wind #
 ########
 Xres = 100
 Yres = 100
-wind_mag = np.array([ [0.0, 0.0, 0.0, 0.0, 0.0],
-                      [0.0, 0.0, 0.0, 0.0, 0.0],
-                      [0.5, 0.5, 0.5, 0.5, 0.5],
-                      [0.5, 0.5, 0.5, 0.5, 0.5],
+wind_mag = np.array([ [1.0, 1.0, 1.0, 1.0, 1.0],
                       [1.0, 1.0, 1.0, 1.0, 1.0],
+                      [.5, .5, 1.5, 1.5, 1.5],
+                      [.4, 1.5, 2.5, 1.5, 2],
+                      [.4, .4, .0, 2.0, 2.0],
                     ])
-wind_dir = np.array([ [0.0, 0.0, 0.0, 0.0, 0.0],
-                      [0.0, 0.0, 0.0, 0.0, 0.0],
-                      [0.5, 0.5, 0.5, 0.5, 0.5],
-                      [0.5, 0.5, 0.5, 0.5, 0.5],
-                      [1.0, 1.0, 1.0, 1.0, 1.0],
+wind_dir = np.array([ [-1.6, -1.6, -1.6, -1.3, 1.3],
+                      [-0.35, -1.6, 1.6, 0.8, 1.3],
+                      [-0.35, -0.8, -0.3, 0.8, 1.5],
+                      [0, -0.2, 0.5, 0.7, 2.7],
+                      [0.2, 0.5, 0.6, 1.7, 2.7],
                     ])
+
 # Convert original, not upsampled since cos/sin expensive
 wind_v = wind_mag * np.cos(wind_dir)
 wind_u = wind_mag * np.sin(wind_dir)
@@ -536,54 +535,76 @@ f_v = interpolate.interp2d(x, y, wind_v, kind = 'linear')
 f_u = interpolate.interp2d(x, y, wind_u, kind = 'linear')
 xnew = np.linspace(0, 5, Xres)
 ynew = np.linspace(0, 5, Yres)
-
 inter_v = f_v(xnew, ynew)
 inter_u = f_u(xnew, ynew)
 
+# Setup environment
+env = { "v"  : inter_v,
+        "u"  : inter_u,
+        "wi" : abs(1 - (-1)),
+        "hi" : abs(1 - (-1)),
+        "wj" : Xres,
+        "hj" : Yres,
+      }
 
-# Make agent
-x_in = 0.5
-y_in = 0.5
-mag_in = 0.05
-dir_in = 0.45
-agent = { "pos" : { "x" : x_in,
-                    "y" : y_in },
-          "vel" : { "u" : mag_in * np.cos(dir_in),
-                    "v" : mag_in * np.sin(dir_in) },
-        }
+numAgents = 5500
+dirs = np.linspace(-np.pi/2, np.pi/2, numAgents)
+mags = np.cos(np.linspace(0, 100, numAgents))
+ypos = np.linspace(-1, 1, numAgents)
+xpos = -1 * np.ones((numAgents))
+vvec = mags * np.sin(dirs)
+uvec = mags * np.cos(dirs)
+
+agents = np.column_stack((ypos, xpos, vvec, uvec))
 
 def moveAgent(agent, time = 0.05, env = None):
-    agent["pos"]["y"] = agent["pos"]["y"] + agent["vel"]["v"] * time
-    agent["pos"]["x"] = agent["pos"]["x"] + agent["vel"]["u"] * time
+    # Agent : (y, x, v, u)
+    e_v = 0.0
+    e_u = 0.0
+    if env is not None:
+        # Convert world coords to env coords
+        ylen = agent[0] + 1
+        xlen = agent[1] + 1
+        erow = int(np.floor(env["hj"] * (ylen / env["hi"])))
+        ecol = int(np.floor(env["wj"] * (xlen / env["wi"])))
+        if erow < 0 and ecol < env["u"].shape[1]:
+            e_v =  4.7
+            e_u =  1.7
+        elif erow < 0 and ecol >= env["u"].shape[1]:
+            e_v =  4.3
+            e_u = -2.5
+        try:
+            e_v  = env["v"][erow][ecol]
+            e_u  = env["u"][erow][ecol]
+        except:
+            pass
 
-def recordAgent(agent, time = 0.05, duration = 100, env = None):
+    # Move agent with velocity for duration
+    # (pos_new = pos_old + velocity * tme)
+    agent[0] = agent[0] + (agent[2] + e_v) * time
+    agent[1] = agent[1] + (agent[3] + e_u) * time
+
+def recordAgent(agent, time = 0.05, duration = 10, env = None):
     iters = int(np.ceil(duration / time))
     trajectory = np.zeros((iters, 2))
     for i in range(iters):
-        trajectory[i] = [agent["pos"]["x"], agent["pos"]["y"]]
+        trajectory[i] = (agent[1], (-1) * agent[0])
         moveAgent(agent, time, env)
-    trajectory[i] = [agent["pos"]["x"], agent["pos"]["y"]]
+    trajectory[i] = (agent[1], (-1) * agent[0])
     return trajectory
 
-traj = recordAgent(agent)
-
-
-# Trajectory to line object
-traj_line               = gloo.Program(vertex_m, fragment_uni, count = traj.shape[0])
-traj_line["position"]   = traj
-traj_line["color"]      = (*bldgs[0], 0.9)
-traj_line_model = np.eye(4, dtype=np.float32)
-##glm.rotate(bldg_en_model, 0.5, 1, 1, 1)
-#glm.scale(bldg_en_model, 0.02, .04, 1)
-#glm.translate(bldg_en_model, -.25, .16, 0.0)
-traj_line["model"] = traj_line_model
-curves.append(traj_line)
-
-
-
-
-
-
+for agent in agents:
+    traj = recordAgent(agent, time = 0.005, env = env)
+    # Trajectory to line object
+    traj_line               = gloo.Program(vertex_m, fragment_uni, count = traj.shape[0])
+    traj_line["position"]   = traj
+    traj_line["color"]      = (*bldgs[0], 0.4)
+    traj_line_model = np.eye(4, dtype=np.float32)
+    ##glm.rotate(bldg_en_model, 0.5, 1, 1, 1)
+    #glm.scale(bldg_en_model, 0.02, .04, 1)
+    #glm.translate(bldg_en_model, -.25, .16, 0.0)
+    traj_line["model"] = traj_line_model
+    curves.append(traj_line)
 
 
 ################
@@ -601,7 +622,7 @@ def on_draw(dt):
     for shape in shapes:
         shape.draw(gl.GL_TRIANGLE_STRIP)
     for curve in curves:
-        curve.draw(gl.GL_POINTS)
+        curve.draw(gl.GL_LINES)
 
     gl.glReadPixels(0, 0, window.width, window.height,
            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, framebuffer)
