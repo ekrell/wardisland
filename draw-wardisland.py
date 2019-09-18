@@ -621,12 +621,17 @@ def on_draw(dt):
     window.clear()
     for shape in shapes:
         shape.draw(gl.GL_TRIANGLE_STRIP)
+
+    gl.glReadPixels(0, 0, window.width, window.height,
+           gl.GL_RGB, gl.GL_UNSIGNED_BYTE, framebuffer)
+    png.from_array(np.flipud(framebuffer), 'RGB').save('wardisland_a.png')
+
     for curve in curves:
         curve.draw(gl.GL_LINES)
 
     gl.glReadPixels(0, 0, window.width, window.height,
            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, framebuffer)
-    png.from_array(np.flipud(framebuffer), 'RGB').save('wardisland.png')
+    png.from_array(np.flipud(framebuffer), 'RGB').save('wardisland_b.png')
 
 # Run the app
 app.run()
