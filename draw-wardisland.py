@@ -41,11 +41,17 @@ def upd(y, deltay, xl, xr, lnudge, rnudge):
 
 def drawVarBlock(ystart, xstart, xstop, deltax, deltay, nudges):
     vertices = []
+    outer_a  = []
+    outer_b  = []
     xran = (xstart, xstop)
     for nudgepair in nudges:
-        vertices = vertices + drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+        verticesNew = drawStrip(xran[0], ystart, xran[1], deltax, deltay)
+        if len(verticesNew) > 0:
+            outer_a.append(verticesNew[0])
+            outer_b.append(verticesNew[-1])
+        vertices = vertices + verticesNew
         ystart, xran = upd(ystart, deltay, xran[0], xran[1], nudgepair[0], nudgepair[1])
-    return vertices
+    return vertices, outer_a, outer_b
 
 def eucdist(x0, y0, x1, y1):
     return pow(pow(x0 - x1, 2) + pow(y0 - y1, 2), 0.5)
@@ -122,6 +128,7 @@ waters = [ np.array((163, 201, 196)) / 255,
 # Shapes, curves
 shapes = []
 curves = []
+curves_loop = []
 
 #########
 # Water #
@@ -132,7 +139,7 @@ ystart = 1.0
 xstart = -1.0
 xstop  =  1.0
 nudges = [(0,0) for n in range(250)]
-water_vertices = drawVarBlock(ystart, xstart, xstop, deltax, deltay, nudges)
+water_vertices, _, _ = drawVarBlock(ystart, xstart, xstop, deltax, deltay, nudges)
 water_colors              = [(*waters[randint(0, len(waters) - 1)], 0.6) for v in range(len(water_vertices))]
 water = gloo.Program(vertex, fragment_var, count = len(water_vertices))
 water["position"]         = water_vertices
@@ -291,7 +298,7 @@ nudges = [ [0.0, 0.0],
            [0.011,0.0175],
          ]
 
-vertices                    = drawVarBlock(ystart, xstart, xstop, deltax, deltay, nudges)
+vertices, va, vb            = drawVarBlock(ystart, xstart, xstop, deltax, deltay, nudges)
 islanda_colors              = [(*greens[randint(0, len(greens) - 1)], 1) for v in range(len(vertices))]
 islanda                     = gloo.Program(vertex, fragment_var, count = len(vertices))
 islanda["position"]         = vertices
@@ -304,6 +311,20 @@ islandb                     = gloo.Program(vertex, fragment_var, count = len(ver
 islandb["position"]         = vertices
 islandb["color"]            = islandb_colors
 shapes.append(islandb)
+
+#############
+# Stitching #
+#############
+border_points = np.array(va + vb[::-1])
+border_line = gloo.Program(vertex_m, fragment_uni, count = border_points.shape[0])
+border_line["position"]   = border_points
+border_line["color"]      = (0.05, 0.05, 0.05, 0.9)
+border_line_model = np.eye(4, dtype=np.float32)
+##glm.rotate(bldg_en_model, 0.5, 1, 1, 1)
+#glm.scale(bldg_en_model, 0.02, .04, 1)
+#glm.translate(bldg_en_model, -.25, .16, 0.0)
+border_line["model"] = border_line_model
+curves_loop.append(border_line)
 
 #############
 # Buildings #
@@ -554,8 +575,6 @@ glm.translate(bldg_uc_model, -.3, .0, 0.0)
 bldg_uc["model"] = bldg_uc_model
 shapes.append(bldg_uc)
 
-
-
 ########
 # Wind #
 ########
@@ -644,18 +663,18 @@ def recordAgent(agent, time = 0.05, duration = 10, env = None):
     trajectory[i] = (agent[1], (-1) * agent[0])
     return trajectory
 
-###for agent in agents:
-###    traj = recordAgent(agent, time = 0.005, env = env)
-###    # Trajectory to line object
-###    traj_line               = gloo.Program(vertex_m, fragment_uni, count = traj.shape[0])
-###    traj_line["position"]   = traj
-###    traj_line["color"]      = (*bldgs[0], 0.4)
-###    traj_line_model = np.eye(4, dtype=np.float32)
-###    ##glm.rotate(bldg_en_model, 0.5, 1, 1, 1)
-###    #glm.scale(bldg_en_model, 0.02, .04, 1)
-###    #glm.translate(bldg_en_model, -.25, .16, 0.0)
-###    traj_line["model"] = traj_line_model
-###    curves.append(traj_line)
+for agent in agents:
+    traj = recordAgent(agent, time = 0.005, env = env)
+    # Trajectory to line object
+    traj_line               = gloo.Program(vertex_m, fragment_uni, count = traj.shape[0])
+    traj_line["position"]   = traj
+    traj_line["color"]      = (*bldgs[0], 0.4)
+    traj_line_model = np.eye(4, dtype=np.float32)
+    ##glm.rotate(bldg_en_model, 0.5, 1, 1, 1)
+    #glm.scale(bldg_en_model, 0.02, .04, 1)
+    #glm.translate(bldg_en_model, -.25, .16, 0.0)
+    traj_line["model"] = traj_line_model
+    curves.append(traj_line)
 
 
 ################
@@ -673,8 +692,11 @@ def on_draw(dt):
     for shape in shapes:
         shape.draw(gl.GL_TRIANGLE_STRIP)
 
-    #for curve in curves:
-    #    curve.draw(gl.GL_LINES)
+    for curve_loop in curves_loop:
+        curve_loop.draw(gl.GL_LINE_LOOP)
+
+    for curve in curves:
+        curve.draw(gl.GL_LINES)
 
     gl.glReadPixels(0, 0, window.width, window.height,
            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, framebuffer)
