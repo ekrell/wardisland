@@ -505,6 +505,57 @@ glm.translate(bldg_en_model, -.25, .16, 0.0)
 bldg_en["model"] = bldg_en_model
 shapes.append(bldg_en)
 
+# Round Building (RND)
+bldg_rnd_vertices = np.array([ (0, 0), (0, 1),  (0.75, 0.75),
+                               (0, 0), (1, 0),  (0.75, 0.75),
+                               (0, 0), (0, -1), (0.75, -0.75),
+                               (0, 0), (1, 0),  (0.75, -0.75),
+                               (0, 0), (0, 1),  (-0.75, 0.75),
+                               (0, 0), (-1, 0),  (-0.75, 0.75),
+                               (0, 0), (0, -1), (-0.75, -0.75),
+                               (0, 0), (-1, 0),  (-0.75, -0.75),
+                            ])
+bldg_rnd               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_rnd_vertices))
+bldg_rnd["position"]   = bldg_rnd_vertices
+bldg_rnd["color"]      = (*bldgs[0], 0.9)
+bldg_rnd_model = np.eye(4, dtype=np.float32)
+#glm.rotate(bldg_rnd_model, 0.5, 1, 1, 1)
+glm.scale(bldg_rnd_model, 0.04, .04, 1)
+glm.translate(bldg_rnd_model, 0, .46, 0.0)
+bldg_rnd["model"] = bldg_rnd_model
+shapes.append(bldg_rnd)
+
+# University Center (UC)
+bldg_uc_vertices = np.array([ (0, 0), (0.0, 0.25), (0.3, 0.25),
+                              (0, 0),  (0.3, 0.25),(0.3, 0),
+
+
+                              (0.3, 0.15), (0.3, 0.3), (0.75, 0.3),
+                              (0.75, 0.3), (0.75, 0.15),(0.3, 0.15),
+
+                              (0.34, 0.15), (0.75, 0.15), (0.34, 0.1),
+                              (0.75, 0.15), (0.34, 0.1), (0.75, 0.1),
+
+                              (0.7, 0.1), (0.45, 0.1), (0.45, 0.06),
+                              (0.45, 0.06), (0.7, 0.06), (0.7, 0.1),
+
+                              (0.75, 0.08), (0.75, 0.27), (0.8, 0.27),
+                              (0.75, 0.08), (0.8, 0.27), (0.8, 0.08),
+
+                              (0.8, 0.3), (0.9, 0.1), (0.8, 0.1),
+                           ])
+bldg_uc               = gloo.Program(vertex_m, fragment_uni, count = len(bldg_uc_vertices))
+bldg_uc["position"]   = bldg_uc_vertices
+bldg_uc["color"]      = (*bldgs[0], 0.9)
+bldg_uc_model = np.eye(4, dtype=np.float32)
+#glm.rotate(bldg_uc_model, 0.5, 1, 1, 1)
+glm.scale(bldg_uc_model, 0.35, .35, 1)
+glm.translate(bldg_uc_model, -.3, .0, 0.0)
+bldg_uc["model"] = bldg_uc_model
+shapes.append(bldg_uc)
+
+
+
 ########
 # Wind #
 ########
@@ -593,18 +644,18 @@ def recordAgent(agent, time = 0.05, duration = 10, env = None):
     trajectory[i] = (agent[1], (-1) * agent[0])
     return trajectory
 
-for agent in agents:
-    traj = recordAgent(agent, time = 0.005, env = env)
-    # Trajectory to line object
-    traj_line               = gloo.Program(vertex_m, fragment_uni, count = traj.shape[0])
-    traj_line["position"]   = traj
-    traj_line["color"]      = (*bldgs[0], 0.4)
-    traj_line_model = np.eye(4, dtype=np.float32)
-    ##glm.rotate(bldg_en_model, 0.5, 1, 1, 1)
-    #glm.scale(bldg_en_model, 0.02, .04, 1)
-    #glm.translate(bldg_en_model, -.25, .16, 0.0)
-    traj_line["model"] = traj_line_model
-    curves.append(traj_line)
+###for agent in agents:
+###    traj = recordAgent(agent, time = 0.005, env = env)
+###    # Trajectory to line object
+###    traj_line               = gloo.Program(vertex_m, fragment_uni, count = traj.shape[0])
+###    traj_line["position"]   = traj
+###    traj_line["color"]      = (*bldgs[0], 0.4)
+###    traj_line_model = np.eye(4, dtype=np.float32)
+###    ##glm.rotate(bldg_en_model, 0.5, 1, 1, 1)
+###    #glm.scale(bldg_en_model, 0.02, .04, 1)
+###    #glm.translate(bldg_en_model, -.25, .16, 0.0)
+###    traj_line["model"] = traj_line_model
+###    curves.append(traj_line)
 
 
 ################
@@ -622,8 +673,8 @@ def on_draw(dt):
     for shape in shapes:
         shape.draw(gl.GL_TRIANGLE_STRIP)
 
-    for curve in curves:
-        curve.draw(gl.GL_LINES)
+    #for curve in curves:
+    #    curve.draw(gl.GL_LINES)
 
     gl.glReadPixels(0, 0, window.width, window.height,
            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, framebuffer)
